@@ -6,45 +6,42 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class QuerySQL {
-    public String tryNickFromLoginPass(String login, String pass){
+    public String tryNickFromLoginPass(String login, String pass) {
         Connection connection = ConnectionService.connectSQLite();
         try {
             PreparedStatement statement = connection.prepareStatement("SELECT nickname FROM users WHERE login = ? AND password = ?");
             statement.setString(1, login);
             statement.setString(2, pass);
             ResultSet rs = statement.executeQuery();
-            if (rs.next()){
+            if (rs.next()) {
                 return rs.getString("nickname");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
         ConnectionService.close(connection);
         }
         return null;
     }
-    public boolean tryToRegistNewUser (String login, String pass, String nickname) {
+    public void tryToRegistNewUser(String login, String pass, String nickname) {
         Connection connection = ConnectionService.connectSQLite();
-        try(PreparedStatement statement = connection.prepareStatement("INSERT INTO users (login, password,nickname) VALUES (?, ?, ?)")) {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO users (login, password,nickname) VALUES (?, ?, ?)")) {
             connection.setAutoCommit(false);
             statement.setString(1, login);
             statement.setString(2, pass);
             statement.setString(3, nickname);
-            int row = statement.executeUpdate();
+            statement.executeUpdate();
             connection.commit();
-            return true;
         } catch (SQLException e) {
             e.printStackTrace();
             ConnectionService.rollback(connection);
-            return false;
-        }finally {
+        } finally {
             ConnectionService.close(connection);
         }
     }
-    public boolean isNickInDb ( String nick) {
+    public boolean isNickInDb(String nick) {
         Connection connection = ConnectionService.connectSQLite();
-        try (PreparedStatement statement = connection.prepareStatement("SELECT nickname FROM users WHERE nickname = ? "))
-        {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT nickname FROM users WHERE nickname = ? ")) {
             statement.setString(1, nick);
             ResultSet rs = statement.executeQuery();
             if (rs.next()) {
@@ -52,15 +49,14 @@ public class QuerySQL {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             ConnectionService.close(connection);
         }
         return false;
     }
-    public boolean isLoginInDb (String login) {
+    public boolean isLoginInDb(String login) {
         Connection connection = ConnectionService.connectSQLite();
-        try (PreparedStatement statement = connection.prepareStatement("SELECT login FROM users WHERE login = ? "))
-        {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT login FROM users WHERE login = ? ")) {
             statement.setString(1, login);
             ResultSet rs = statement.executeQuery();
             if (rs.next()) {
@@ -68,13 +64,13 @@ public class QuerySQL {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             ConnectionService.close(connection);
         }
         return false;
     }
 
-    public boolean tryToUpdateNickInDb (String nickNew, String nickOld) {
+    public boolean tryToUpdateNickInDb(String nickNew, String nickOld) {
         Connection connection = ConnectionService.connectSQLite();
         try (PreparedStatement statement = connection.prepareStatement("UPDATE users SET nickname = ? WHERE nickname = ? ")) {
             connection.setAutoCommit(false);
@@ -87,7 +83,7 @@ public class QuerySQL {
             ConnectionService.rollback(connection);
             e.printStackTrace();
             return false;
-        }finally {
+        } finally {
             ConnectionService.close(connection);
         }
     }

@@ -1,21 +1,17 @@
 package client;
 
-import javafx.application.Application;
 import javafx.fxml.FXML;
-import javafx.stage.Stage;
 import javafx.scene.control.TextField;
-import java.awt.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 import javafx.scene.control.Label;
+import network.Configure;
 
-
-public class controllerRegistr{
+public class controllerRegistr {
     @FXML
-    TextField loginFieldReg,passwordFieldReg, nicknameFieldReg;
+    TextField loginFieldReg, passwordFieldReg, nicknameFieldReg;
 
     @FXML
     Label result;
@@ -23,29 +19,26 @@ public class controllerRegistr{
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-
-    public void registrationToChat (){
-
-            try{
-                if(socket == null || socket.isClosed()){
-                socket = new Socket("localhost", 8750);
+    public void registrationToChat() {
+            try {
+                Configure configure = Configure.readConfig(Configure.DEFAULT_CONFIG);
+                if (socket == null || socket.isClosed()) {
+                socket = new Socket(configure.getHost(), configure.getPort());
                 in = new DataInputStream(socket.getInputStream());
                 out = new DataOutputStream(socket.getOutputStream());
-                String str ="/registration "+ loginFieldReg.getText()+" "+ passwordFieldReg.getText()+ " "+ nicknameFieldReg.getText();
-                out.writeUTF(str);
+                String str = "/registration " + loginFieldReg.getText() + " " + passwordFieldReg.getText() + " " + nicknameFieldReg.getText();                out.writeUTF(str);
                 loginFieldReg.clear();
                 passwordFieldReg.clear();
                 nicknameFieldReg.clear();
                 String answer = in.readUTF();
                 result.setText(answer);
-                if (answer.equals("Registration comlied")) {
+                if (answer.equals("Registration complied")) {
                     out.writeUTF("/end");
-                }
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-            }finally {
-
+            } finally {
                 try {
                     in.close();
                 } catch (IOException e) {

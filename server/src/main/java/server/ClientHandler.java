@@ -1,7 +1,6 @@
 package server;
 
 import server.sql.QuerySQL;
-
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -16,7 +15,7 @@ public class ClientHandler {
     private String nickname;
     private File file;
 
-    public ClientHandler (Server server, Socket socket) {
+    public ClientHandler(Server server, Socket socket) {
         try {
             this.server = server;
             this.socket = socket;
@@ -39,12 +38,10 @@ public class ClientHandler {
                                     str = "/authOk " + nickname;
                                     out.writeUTF(str);
                                     //создание файла истории
-                                    String source = ".\\server\\src\\main\\resources\\history_"+strings[1]+".txt";
+                                    String source = ".\\server\\src\\main\\resources\\history_" + strings[1] + ".txt";
                                     file = new File(source);
                                     logChart(source, nickname, file);
-
                                     server.broadcastMsg(nickname + " joined the chat");
-
                                     server.subscribe(this);
                                     break;
                                 }
@@ -52,18 +49,16 @@ public class ClientHandler {
                                 sendMsg("Login or password is not correct");
                             }
                         }
-                        if (str.startsWith("/registration")){
-                               QuerySQL querySQL = new QuerySQL();
-                               if(strings.length ==4 && !querySQL.isLoginInDb(strings[1]) && !querySQL.isNickInDb(strings[3])){
-                                querySQL.tryToRegistNewUser(strings[1],strings[2], strings[3]);
-                                sendMsg("Registration comlied");
+                        if (str.startsWith("/registration")) {
+                            QuerySQL querySQL = new QuerySQL();
+                            if (strings.length == 4 && !querySQL.isLoginInDb(strings[1]) && !querySQL.isNickInDb(strings[3])) {
+                                querySQL.tryToRegistNewUser(strings[1], strings[2], strings[3]);
+                                sendMsg("Registration complied");
                                 break;
-                            }
-                            else {
+                            } else {
                                 sendMsg("Incorrect login/nickname");
                             }
                        }
-
                     }
                     while (true) {
                         String strChat = in.readUTF();
@@ -82,28 +77,23 @@ public class ClientHandler {
                             } else {
                                 out.writeUTF("The user with this nickname already exists in the chat");
                             }
-                        }
-                        else if (strings[0].equals("/w") && strings.length > 2){
-                            if (server.isNickInChat(strings[1])){
+                        } else if (strings[0].equals("/w") && strings.length > 2) {
+                            if (server.isNickInChat(strings[1])) {
                                 server.unicastMsg(this.nickname + " : " + strChat.substring(strChat.indexOf(strings[2])), this.nickname, strings[1]);
-                            }
-                            else {
+                            } else {
                                 sendMsg("User with nickname " + strings[1] + " missing in the chart");
                             }
                         }
-
                         if (strChat.equals("/end")) {
                             break;
                         }
+                    } else {
+                        server.broadcastMsg(this.nickname + " : " + strChat);
                     }
-                        else {
-                            server.broadcastMsg(this.nickname +" : " + strChat);}
-
-                    }
-
+                }
                 } catch (IOException e) {
                     e.printStackTrace();
-                }finally {
+                } finally {
                     closeDataStream();
                     server.unsubscribe(this);
                 }
@@ -113,7 +103,7 @@ public class ClientHandler {
         }
     }
 
-    public void sendMsg (String msg) {
+    public void sendMsg(String msg) {
         try {
 
             out.writeUTF(msg);
@@ -121,19 +111,10 @@ public class ClientHandler {
             e.printStackTrace();
         }
     }
-    public void ReadMsg (String msg) {
-        try {
-
-            out.writeUTF(msg);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public String getNickname () {
+    public String getNickname() {
         return nickname;
     }
-    public void closeDataStream(){
+    public void closeDataStream() {
         try {
             in.close();
         } catch (IOException e) {
@@ -150,29 +131,26 @@ public class ClientHandler {
             e.printStackTrace();
         }
     }
-    public void  logChart(String source, String nickname, File file){
+    public void  logChart(String source, String nickname, File file) {
         //при отсутствии файла - создание файла истории
-        if (!Files.isRegularFile(Path.of(source))){
+        if (!Files.isRegularFile(Path.of(source))) {
             try {
                 Files.createFile(Path.of(source));
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else {
-            ArrayList <String> list  = doDataInputStream(file);
+        } else {
+            ArrayList<String> list  = doDataInputStream(file);
             int begin = 10;
-            if(list.size()>begin){ begin = list.size()-begin ;}
-            else { begin = 0;}
-
-            for (int i = begin; i <list.size() ; i++) {
+            if (list.size() > begin) {
+                begin = list.size() - begin;
+            } else {
+                begin = 0;
+            }
+            for (int i = begin; i < list.size(); i++) {
                 sendMsg(list.get(i));
             }
-
         }
-
-
     }
     static void doDataOutputStream(File file, String value) {
         try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(file, true))) {
@@ -181,7 +159,7 @@ public class ClientHandler {
             throw new RuntimeException("SWW", e);
         }
     }
-    static ArrayList <String> doDataInputStream(File file) {
+    static ArrayList<String> doDataInputStream(File file) {
         try (DataInputStream dis = new DataInputStream(new FileInputStream(file))) {
             String s = dis.readUTF();
             ArrayList<String> list = new ArrayList<>();
@@ -194,13 +172,7 @@ public class ClientHandler {
             throw new RuntimeException("SWW", e);
         }
     }
-
-    public File getFile () {
+    public File getFile() {
         return file;
     }
-
-    public Socket getSocket () {
-        return socket;
-    }
-
 }

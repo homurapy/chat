@@ -15,6 +15,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import network.Configure;
 
 import java.io.*;
 import java.net.Socket;
@@ -27,10 +28,10 @@ public class Controller implements Initializable {
     TextArea mainTextArea, clientsList;
 
     @FXML
-    TextField messageUser,loginField, passwordField;
+    TextField messageUser, loginField, passwordField;
 
     @FXML
-    HBox autorizationField;
+    HBox authorizationField;
 
     @FXML
     Button ConnectBtn, sendMsgBtn;
@@ -47,25 +48,23 @@ public class Controller implements Initializable {
     private boolean authStatus;
     private String nickname;
     @Override
-    public void initialize (URL url, ResourceBundle resourceBundle) {
+    public void initialize(URL url, ResourceBundle resourceBundle) {
         authStatus = false;
         Platform.runLater(() -> ((Stage) Main.getScene().getWindow()).setOnCloseRequest(t -> {
             sendMsg("/end");
             Platform.exit();
         }));
-
     }
-
-    public void connect () {
+    public void connect() {
         try {
-if (socket ==null || socket.isClosed() ) {
-    socket = new Socket("localhost", 8750);
+if (socket == null || socket.isClosed()) {
+    Configure configure = Configure.readConfig(Configure.DEFAULT_CONFIG);
+    socket = new Socket(configure.getHost(), configure.getPort());
     in = new DataInputStream(socket.getInputStream());
     out = new DataOutputStream(socket.getOutputStream());
     new Thread(() -> {
         try {
             while (true) {
-
                 String str = in.readUTF();
                 System.out.println(str);
                 String[] authWord = str.split(" ");
@@ -73,8 +72,7 @@ if (socket ==null || socket.isClosed() ) {
                     setAuthStatus(true);
                     nickname = authWord[1];
                     break;
-                }
-                else {
+                } else {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
@@ -87,7 +85,7 @@ if (socket ==null || socket.isClosed() ) {
                 String str = in.readUTF();
                 String[] strings = str.split(" ");
 
-                if (strings[0].equals("/changenick") && strings.length == 2) {
+                if (strings[0].equals("/changing") && strings.length == 2) {
                     nickname = strings[1];
                     Platform.runLater(() -> {
                         ((Stage) mainTextArea.getScene().getWindow()).setTitle("Java Chat Client: " + nickname);
@@ -99,7 +97,6 @@ if (socket ==null || socket.isClosed() ) {
                     }
                 } else {
                     mainTextArea.appendText(str + System.lineSeparator());
-
                 }
             }
         } catch (IOException e) {
@@ -121,18 +118,14 @@ if (socket ==null || socket.isClosed() ) {
                 e.printStackTrace();
             }
         }
-
-
     }).start();
-}
+    }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-    public void sendMsg () {
+    public void sendMsg() {
         try {
-
             String str = messageUser.getText();
             out.writeUTF(str);
             messageUser.clear();
@@ -141,8 +134,7 @@ if (socket ==null || socket.isClosed() ) {
             e.printStackTrace();
         }
     }
-
-    public void sendMsg (String s) {
+    public void sendMsg(String s) {
         try {
             if (socket != null && !socket.isClosed()) {
                 String str = messageUser.getText();
@@ -155,11 +147,11 @@ if (socket ==null || socket.isClosed() ) {
         }
     }
 
-    public void setAuthStatus (boolean authStatus) {
+    public void setAuthStatus(boolean authStatus) {
         this.authStatus = authStatus;
         if (authStatus) {
-            autorizationField.setVisible(false);
-            autorizationField.setManaged(false);
+            authorizationField.setVisible(false);
+            authorizationField.setManaged(false);
             mainTextArea.setVisible(true);
             mainTextArea.setManaged(true);
             clientsList.setVisible(true);
@@ -170,8 +162,8 @@ if (socket ==null || socket.isClosed() ) {
             sendMsgBtn.setManaged(true);
 
         } else {
-            autorizationField.setVisible(true);
-            autorizationField.setManaged(true);
+            authorizationField.setVisible(true);
+            authorizationField.setManaged(true);
             mainTextArea.setVisible(false);
             mainTextArea.setManaged(false);
             clientsList.setVisible(false);
@@ -193,7 +185,7 @@ if (socket ==null || socket.isClosed() ) {
         });
     }
 
-    public void sendReg (ActionEvent actionEvent) {
+    public void sendReg(ActionEvent actionEvent) {
         connect();
         if (loginField.getText() != null && passwordField != null) {
             String str = "/tryauth " + loginField.getText() + " " + passwordField.getText();
@@ -207,7 +199,7 @@ if (socket ==null || socket.isClosed() ) {
         }
     }
 
-    public void callRegistration (ActionEvent actionEvent) {
+    public void callRegistration(ActionEvent actionEvent) {
         try {
             Stage stage = new Stage();
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/registration.fxml"));

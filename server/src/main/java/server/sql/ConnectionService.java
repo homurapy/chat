@@ -5,18 +5,18 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public final class ConnectionService {
-    private ConnectionService () {
+    private ConnectionService() {
     }
 
-    public static Connection connectSQLite () {
+    public static Connection connectSQLite() {
         try {
             return DriverManager.getConnection("jdbc:sqlite:server/database.db");
-        } catch (SQLException throwables) {
-            throw new RuntimeException("SWW", throwables);
+        } catch (SQLException exc) {
+            throw new RuntimeException("SWW", exc);
         }
     }
 
-    public static void rollback (Connection connection) {
+    public static void rollback(Connection connection) {
         try {
             connection.rollback();
         } catch (SQLException e) {
@@ -24,7 +24,7 @@ public final class ConnectionService {
         }
     }
 
-    public static void close (Connection connection) {
+    public static void close(Connection connection) {
         try {
             connection.close();
         } catch (SQLException e) {
